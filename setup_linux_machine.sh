@@ -43,8 +43,11 @@ EOF
 echo "Configuring SSH to disable root login..."
 SSH_CONFIG_FILE="/etc/ssh/sshd_config"
 
-# Use sed to handle commented and uncommented PermitRootLogin lines
-sudo sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin no/' $SSH_CONFIG_FILE
+# Ensure PermitRootLogin is set to no and appears only once
+if grep -q "^#\?PermitRootLogin" "$SSH_CONFIG_FILE"; then
+    sudo sed -i '/^#\?PermitRootLogin.*/d' "$SSH_CONFIG_FILE" # Remove any existing lines
+fi
+echo "PermitRootLogin no" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
 
 # Restart SSH service to apply changes
 echo "Restarting SSH service..."
