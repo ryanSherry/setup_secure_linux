@@ -10,10 +10,27 @@ fi
 USERNAME=$1
 DOWNLOAD_URL=$2
 
-# Step 1: Disable password login for the specified user
-echo "Disabling password login for user '$USERNAME'..."
-sudo sed -i "/^Match User $USERNAME\$/,/^$/d" /etc/ssh/sshd_config
-echo -e "\nMatch User $USERNAME\n    PasswordAuthentication no" | sudo tee -a /etc/ssh/sshd_config
+# Step 1: Disable password login for all users
+echo "Disabling password login globally..."
+SSH_CONFIG_FILE="/etc/ssh/sshd_config"
+
+# Define settings and their desired values
+declare -A SETTINGS=(
+    ["PasswordAuthentication"]="no"
+    ["ChallengeResponseAuthentication"]="no"
+    ["PubkeyAuthentication"]="yes"
+)
+
+# Loop through the settings and apply changes
+for KEY in "${!SETTINGS[@]}"; do
+    VALUE="${SETTINGS[$KEY]}"
+    
+    # Remove duplicate or existing lines for the key
+    sudo sed -i "/^#\?$KEY .*/d" "$SSH_CONFIG_FILE"
+
+    # Append the correct setting at the end of the file
+    echo "$KEY $VALUE" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
+done
 
 # Restart SSH service to apply changes
 echo "Restarting SSH service to apply changes..."
