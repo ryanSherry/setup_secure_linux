@@ -28,6 +28,9 @@ sudo usermod -aG sudo $USERNAME
 echo "Switching to '$USERNAME' user..."
 sudo -i -u $USERNAME bash <<EOF
 
+# Navigate to the new user's home directory
+cd ~ || exit
+
 # Create .ssh directory and set permissions
 echo "Setting up SSH for '$USERNAME'..."
 mkdir -p ~/.ssh
@@ -38,6 +41,10 @@ echo "$PUBLIC_RSA_KEY" > ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 
 EOF
+
+# Switch to the new user's shell and home directory
+echo "Switching to the new user's shell..."
+exec sudo -i -u $USERNAME
 
 # Ensure PermitRootLogin is set to no in sshd_config
 echo "Configuring SSH to disable root login..."
